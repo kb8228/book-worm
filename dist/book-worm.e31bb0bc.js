@@ -30636,14 +30636,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
-function fetchResults(queryString) {
-  fetch("http://openlibrary.org/search.json?q=".concat(queryString, "&page=1")).then(function (response) {
-    return response.json();
-  }).then(function (myJson) {
-    console.log(JSON.stringify(myJson));
-  });
-}
-
 var HelloMessage =
 /*#__PURE__*/
 function (_React$Component) {
@@ -30661,7 +30653,8 @@ function (_React$Component) {
     };
 
     _this.state = {
-      formattedInput: ""
+      formattedInput: "",
+      results: null
     };
     return _this;
   }
@@ -30676,7 +30669,43 @@ function (_React$Component) {
       var forbiddenChars = /[^a-zA-Z0-9_\- ]+$/g;
       this.setState({
         formattedInput: string.replace(forbiddenChars, "")
+      }, this.fetchResults);
+    }
+  }, {
+    key: "fetchResults",
+    value: function fetchResults() {
+      var _this2 = this;
+
+      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+
+      if (this.state.formattedInput.length < 3) {
+        return;
+      }
+
+      var queryString = this.state.formattedInput.trim().replace(" ", "+");
+      fetch("http://openlibrary.org/search.json?q=".concat(queryString, "&page=").concat(page)).then(function (response) {
+        return response.json();
+      }).then(function (results) {
+        _this2.setState({
+          results: results
+        });
+      }).catch(function (error) {
+        console.error("Oh, trouble!", error.message);
       });
+    }
+  }, {
+    key: "renderResultsList",
+    value: function renderResultsList() {
+      if (!this.state.results) {
+        return null;
+      }
+
+      var firstTen = this.state.results.docs.slice(0, 10).map(function (doc) {
+        return _react.default.createElement("li", {
+          key: doc.key
+        }, doc.title, " - by ", doc.author_name);
+      });
+      return _react.default.createElement("ul", null, firstTen);
     }
   }, {
     key: "render",
@@ -30688,7 +30717,7 @@ function (_React$Component) {
         placeholder: "title or author",
         onChange: this.handleInput,
         value: this.state.formattedInput
-      }));
+      }), this.renderResultsList());
     }
   }]);
 
