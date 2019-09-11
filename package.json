@@ -10,8 +10,11 @@
   "author": "Ksenia Smith",
   "license": "ISC",
   "dependencies": {
+    "@material-ui/core": "^4.4.1",
+    "memoize-one": "^5.1.1",
     "react": "^16.9.0",
-    "react-dom": "^16.9.0"
+    "react-dom": "^16.9.0",
+    "react-window": "^1.8.5"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
