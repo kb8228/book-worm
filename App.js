@@ -32,16 +32,22 @@ class App extends React.Component {
   sanitizeInput(string) {
     // matches all but alphanumeric, dashes, or spaces
     const forbiddenChars = /[^a-zA-Z0-9\- ]+$/g;
-    this.setState({ formattedInput: string.replace(forbiddenChars, "") }, this.fetchResult)
+    const formattedInput = string.replace(/[^a-zA-Z0-9\- ]+$/g, "")
+
+    this.setState({
+      formattedInput,
+      result: formattedInput.length ? this.state.result : null
+    }, this.fetchResult)
   }
 
-  fetchResult(page = 1) {
-    if (this.state.formattedInput.length < 3) { return; }
+  // TODO: debounce
+  fetchResult() {
+    if (this.state.formattedInput.length < 2) { return; }
 
     const searchBy = this.state.tabs[this.state.currentTab]
     const queryString = this.state.formattedInput.trim().replace(" ", "+")
 
-    fetch(`http://openlibrary.org/search.json?${searchBy}=${queryString}&page=${page}`)
+    fetch(`http://openlibrary.org/search.json?${searchBy}=${queryString}`)
       .then(function(response) {
         return response.json()
       })
@@ -51,6 +57,19 @@ class App extends React.Component {
       .catch(function(error) {
         console.error("Oh, trouble!", error.message);
       });
+  }
+  // TODO: add pages
+  renderResultsHeader() {
+    if (!this.state.result || !this.state.result.numFound) { return null; }
+    const { start, numFound } = this.state.result;
+    const rangeStart = start * 100 + 1;
+    const rangeEnd = (rangeStart + 99) < numFound ? (rangeStart + 99) : numFound;
+
+    return (
+      <Typography variant="h6" component="h1">
+        {`Showing ${rangeStart}-${rangeEnd} of ${numFound} results:`}
+      </Typography>
+    );
   }
 
   renderResultsList() {
@@ -103,6 +122,7 @@ class App extends React.Component {
           onChange={this.handleInput}
           value={this.state.formattedInput}
         />
+        { this.renderResultsHeader() }
         { this.renderResultsList() }
       </Container>
     );
